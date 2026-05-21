@@ -12,11 +12,15 @@ VOLUME_STEP = 100 / 16   # match the macOS notch size for "volume up/down N"
 
 # --- output volume via the Core Audio API (pycaw) ---
 def _endpoint_volume():
+    import comtypes
     from ctypes import POINTER, cast
 
     from comtypes import CLSCTX_ALL
     from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
+    # COM must be initialized on the calling thread. Winter's volume calls run
+    # on worker threads, so do it here every time (idempotent per thread).
+    comtypes.CoInitialize()
     speakers = AudioUtilities.GetSpeakers()
     interface = speakers.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
     return cast(interface, POINTER(IAudioEndpointVolume))
@@ -25,7 +29,8 @@ def _endpoint_volume():
 def get_volume() -> int:
     try:
         return round(_endpoint_volume().GetMasterVolumeLevelScalar() * 100)
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        print("[volume] could not read volume:", exc)
         return 0
 
 
@@ -33,8 +38,8 @@ def set_volume(level: int) -> int:
     level = max(0, min(100, int(level)))
     try:
         _endpoint_volume().SetMasterVolumeLevelScalar(level / 100.0, None)
-    except Exception:  # noqa: BLE001
-        pass
+    except Exception as exc:  # noqa: BLE001
+        print("[volume] could not set volume:", exc)
     return level
 
 
