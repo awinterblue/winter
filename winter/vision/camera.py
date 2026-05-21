@@ -11,6 +11,7 @@ import numpy as np
 from PyQt6.QtCore import QThread
 
 from winter.assets import HAND_MODEL, ensure_hand_model
+from winter.system.osinfo import IS_WINDOWS
 from winter.vision.cursor_map import CursorMapper
 from winter.vision.gestures import GestureEngine
 
@@ -52,11 +53,19 @@ class CameraThread(QThread):
             return
 
         cam = self.settings.camera
-        capture = cv2.VideoCapture(cam.index)
+        # On Windows the DirectShow backend is far more reliable than the
+        # default (MSMF) for opening a webcam.
+        if IS_WINDOWS:
+            capture = cv2.VideoCapture(cam.index, cv2.CAP_DSHOW)
+        else:
+            capture = cv2.VideoCapture(cam.index)
         capture.set(cv2.CAP_PROP_FRAME_WIDTH, cam.width)
         capture.set(cv2.CAP_PROP_FRAME_HEIGHT, cam.height)
         if not capture.isOpened():
-            self.bus.error.emit("Could not open the camera.")
+            self.bus.error.emit(
+                "Could not open the camera — make sure no other app is using "
+                "it, and that the OS lets desktop apps access the camera."
+            )
             return
 
         options = HandLandmarkerOptions(
