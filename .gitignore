@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.DS_Store
+build/
+dist/
+# downloaded model caches
+models/
+.cache/
+# generated app bundle (recreate with scripts/make_app.sh)
+Winter.app/
+# raw voice-clip source material — the processed reference.wav is what's kept
+config/characters/*/voicelines/*
+!config/characters/*/voicelines/README.md

@@ -1,0 +1,58 @@
+[project]
+name = "winter"
+version = "0.1.0"
+description = "Winter — a local-first AI desktop assistant with voice, gestures, and switchable characters"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # UI
+    "PyQt6>=6.7",
+    # core
+    "numpy",
+    "pyyaml",
+    # audio in/out
+    "sounddevice",
+    "soundfile",
+    "webrtcvad-wheels",
+    "soxr",                 # high-quality resampling for the mic capture path
+    # wake word — offline keyword spotting
+    "vosk",
+    "onnxruntime",          # also used by piper-tts
+    # speech-to-text
+    "faster-whisper",
+    # local LLM
+    "ollama",
+    # web search
+    "ddgs",
+    # vision
+    "mediapipe>=0.10.18",
+    "opencv-python",
+    # text-to-speech — chatterbox clones voices, piper is the fast generic voice
+    "chatterbox-tts",
+    "piper-tts",
+    # macOS system control + voice-processing mic capture (echo cancellation)
+    "pyobjc-framework-Quartz",
+    "pyobjc-framework-Cocoa",
+    "pyobjc-framework-ApplicationServices",
+    "pyobjc-framework-AVFoundation",
+    # perth (a chatterbox-tts dependency) still imports the legacy pkg_resources
+    "setuptools<81",
+]
+
+[project.scripts]
+winter = "winter.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["winter*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.uv.extra-build-dependencies]
+# pkuseg (a chatterbox-tts dependency) needs numpy at build time but does
+# not declare it — supply it so the sdist builds.
+pkuseg = ["numpy"]
