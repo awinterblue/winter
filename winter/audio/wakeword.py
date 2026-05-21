@@ -13,9 +13,8 @@ from typing import Optional
 
 import numpy as np
 
-from winter import MODELS_DIR
+from winter.assets import VOSK_MODEL_DIR, ensure_vosk_model
 
-VOSK_MODEL_DIR = MODELS_DIR / "vosk-model-small-en-us-0.15"
 _MIN_WORD_CONF = 0.7    # ignore words the recogniser isn't sure it heard
 
 # Vosk finalizes an utterance after this much trailing silence. The model
@@ -57,6 +56,8 @@ def _load_model(model_dir: Path):
 
     key = str(model_dir)
     if key not in _model_cache:
+        if model_dir == VOSK_MODEL_DIR:
+            ensure_vosk_model()        # download it on first run if missing
         if not model_dir.is_dir():
             raise FileNotFoundError(f"Vosk model not found: {model_dir}")
         _tune_endpointing(model_dir)   # must run before the model is built

@@ -10,11 +10,9 @@ import time
 import numpy as np
 from PyQt6.QtCore import QThread
 
-from winter import MODELS_DIR
+from winter.assets import HAND_MODEL, ensure_hand_model
 from winter.vision.cursor_map import CursorMapper
 from winter.vision.gestures import GestureEngine
-
-_MODEL_PATH = MODELS_DIR / "hand_landmarker.task"
 
 
 class CameraThread(QThread):
@@ -43,8 +41,10 @@ class CameraThread(QThread):
                                                    RunningMode)
         from winter.system import cursor
 
-        if not _MODEL_PATH.exists():
-            self.bus.error.emit("Hand-tracking model missing.")
+        try:
+            ensure_hand_model()        # download it on first run if missing
+        except Exception as exc:  # noqa: BLE001
+            self.bus.error.emit(f"Hand-tracking model unavailable: {exc}")
             return
 
         cam = self.settings.camera
@@ -56,7 +56,7 @@ class CameraThread(QThread):
             return
 
         options = HandLandmarkerOptions(
-            base_options=BaseOptions(model_asset_path=str(_MODEL_PATH)),
+            base_options=BaseOptions(model_asset_path=str(HAND_MODEL)),
             running_mode=RunningMode.VIDEO,
             num_hands=1,
             min_hand_detection_confidence=0.6,

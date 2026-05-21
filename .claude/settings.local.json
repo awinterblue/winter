@@ -75,7 +75,11 @@
       "Bash(pgrep -fl \"Google Chrome.app/Contents/MacOS/Google Chrome$\")",
       "Bash(git commit -q -m ' *)",
       "Bash(git checkout *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(git push *)"
     ]
   }
 }
