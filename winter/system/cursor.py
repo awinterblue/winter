@@ -1,45 +1,23 @@
-"""Move, click, and scroll the macOS cursor via Quartz events.
+"""Cursor control — move, click, scroll, dispatched to the OS backend."""
+from winter.system.osinfo import IS_MACOS, IS_WINDOWS
 
-Posting these events needs Accessibility permission; without it the calls
-silently do nothing.
-"""
-from __future__ import annotations
-
-import Quartz
-
-_pos = {"x": 0.0, "y": 0.0}
-
-
-def screen_size() -> tuple[float, float]:
-    """Main display size in points — the coordinate space Quartz events use."""
-    bounds = Quartz.CGDisplayBounds(Quartz.CGMainDisplayID())
-    return float(bounds.size.width), float(bounds.size.height)
-
-
-def _post_mouse(event_type, x: float, y: float) -> None:
-    event = Quartz.CGEventCreateMouseEvent(
-        None, event_type, (x, y), Quartz.kCGMouseButtonLeft,
+if IS_MACOS:
+    from winter.system._cursor_macos import (  # noqa: F401
+        click, move_to, screen_size, scroll,
     )
-    Quartz.CGEventPost(Quartz.kCGHIDEventTap, event)
-
-
-def move_to(x: float, y: float) -> None:
-    """Move the cursor to a screen position (in points)."""
-    _pos["x"], _pos["y"] = x, y
-    _post_mouse(Quartz.kCGEventMouseMoved, x, y)
-
-
-def click() -> None:
-    """A single left click at the current cursor position."""
-    x, y = _pos["x"], _pos["y"]
-    _post_mouse(Quartz.kCGEventLeftMouseDown, x, y)
-    _post_mouse(Quartz.kCGEventLeftMouseUp, x, y)
-
-
-def scroll(lines: int) -> None:
-    """Scroll the wheel vertically: positive scrolls up, negative scrolls down."""
-    event = Quartz.CGEventCreateScrollWheelEvent(
-        None, Quartz.kCGScrollEventUnitLine, 1, int(lines),
+elif IS_WINDOWS:
+    from winter.system._cursor_windows import (  # noqa: F401
+        click, move_to, screen_size, scroll,
     )
-    if event:
-        Quartz.CGEventPost(Quartz.kCGHIDEventTap, event)
+else:  # unsupported OS — harmless no-op stubs
+    def screen_size() -> tuple[float, float]:
+        return 1920.0, 1080.0
+
+    def move_to(x: float, y: float) -> None:
+        pass
+
+    def click() -> None:
+        pass
+
+    def scroll(lines: int) -> None:
+        pass

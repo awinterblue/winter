@@ -31,10 +31,13 @@ dependencies = [
     "chatterbox-tts",
     "piper-tts",
     # macOS system control + voice-processing mic capture (echo cancellation)
-    "pyobjc-framework-Quartz",
-    "pyobjc-framework-Cocoa",
-    "pyobjc-framework-ApplicationServices",
-    "pyobjc-framework-AVFoundation",
+    "pyobjc-framework-Quartz; sys_platform == 'darwin'",
+    "pyobjc-framework-Cocoa; sys_platform == 'darwin'",
+    "pyobjc-framework-ApplicationServices; sys_platform == 'darwin'",
+    "pyobjc-framework-AVFoundation; sys_platform == 'darwin'",
+    # Windows system control — output volume via the Core Audio API
+    "pycaw; sys_platform == 'win32'",
+    "comtypes; sys_platform == 'win32'",
     # perth (a chatterbox-tts dependency) still imports the legacy pkg_resources
     "setuptools<81",
 ]

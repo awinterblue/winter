@@ -18,7 +18,7 @@ from winter.config.settings import Settings
 from winter.core.events import EventBus
 from winter.core.state import AppState, Phase
 from winter.core.worker import Worker
-from winter.system import cursor, macos_control, permissions
+from winter.system import control, cursor, permissions
 from winter.ui.settings_window import SettingsWindow
 from winter.ui.tray import TrayController
 from winter.ui.visualizer import VisualizerWidget
@@ -248,10 +248,10 @@ class AppController(QObject):
         if name == "click":
             cursor.click()
         elif name == "swipe_right":
-            macos_control.media("next")
+            control.media("next")
             self.bus.status_message.emit("Swipe → next")
         elif name == "swipe_left":
-            macos_control.media("previous")
+            control.media("previous")
             self.bus.status_message.emit("Swipe → previous")
         elif name == "scroll_up":
             cursor.scroll(_SCROLL_LINES)

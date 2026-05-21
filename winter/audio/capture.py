@@ -92,11 +92,11 @@ class AudioCaptureThread(QThread):
         if not self.settings.audio.duck_while_listening:
             return None
         try:
-            from winter.system import macos_control
+            from winter.system import control
 
-            current = macos_control.get_volume()
+            current = control.get_volume()
             if current > 0:
-                macos_control.set_volume(int(current * _DUCK_FACTOR))
+                control.set_volume(int(current * _DUCK_FACTOR))
             return current
         except Exception:  # noqa: BLE001
             return None
@@ -105,9 +105,9 @@ class AudioCaptureThread(QThread):
         if saved is None:
             return
         try:
-            from winter.system import macos_control
+            from winter.system import control
 
-            macos_control.set_volume(saved)
+            control.set_volume(saved)
         except Exception:  # noqa: BLE001
             pass
 

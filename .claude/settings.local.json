@@ -72,7 +72,10 @@
       "Bash(kill -9 67442)",
       "Bash(.venv/bin/python *)",
       "Bash(open -a \"Google Chrome\" \"https://www.google.com\")",
-      "Bash(pgrep -fl \"Google Chrome.app/Contents/MacOS/Google Chrome$\")"
+      "Bash(pgrep -fl \"Google Chrome.app/Contents/MacOS/Google Chrome$\")",
+      "Bash(git commit -q -m ' *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)"
     ]
   }
 }

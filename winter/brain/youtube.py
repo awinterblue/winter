@@ -6,9 +6,9 @@ of the embedded data, then opens it in the default browser.
 from __future__ import annotations
 
 import re
-import subprocess
 import urllib.parse
 import urllib.request
+import webbrowser
 from typing import Optional
 
 _UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -48,5 +48,5 @@ def play(query: str) -> bool:
         url = f"https://www.youtube.com/watch?v={video_id}"
     else:
         url = _search_url(query)
-    subprocess.run(["open", url], check=False)
+    webbrowser.open(url)   # cross-platform: opens the default browser
     return video_id is not None

@@ -107,6 +107,10 @@ class VisualizerWidget(QWidget):
     def _refresh_shadow(self) -> None:
         """Ask macOS to recompute this window's drop shadow for the current
         content — otherwise it keeps the previous sprite's silhouette."""
+        from winter.system.osinfo import IS_MACOS
+
+        if not IS_MACOS:
+            return   # the stale-shadow quirk is macOS-only
         try:
             import objc
 

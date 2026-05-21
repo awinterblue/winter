@@ -169,9 +169,11 @@ class SoundDeviceMicSource(MicSource):
 
 
 def open_mic_source(settings) -> MicSource:
-    """Open the mic. Voice processing only if explicitly enabled (it ducks all
-    other audio); otherwise a plain microphone."""
-    if getattr(settings.audio, "echo_cancellation", False):
+    """Open the mic. Voice processing only on macOS and if explicitly enabled
+    (it ducks all other audio); otherwise a plain microphone."""
+    from winter.system.osinfo import IS_MACOS
+
+    if IS_MACOS and getattr(settings.audio, "echo_cancellation", False):
         try:
             source = VoiceProcessingMicSource()
             source.start()

@@ -1,9 +1,17 @@
-"""macOS permission checks and first-run guidance."""
+"""Permission checks and first-run guidance.
+
+macOS gates input simulation and the camera behind TCC permissions; Windows
+does not, so on Windows these checks all report 'granted'.
+"""
 from __future__ import annotations
+
+from winter.system.osinfo import IS_MACOS
 
 
 def accessibility_trusted() -> bool:
     """Whether this process may post input events (media keys, cursor control)."""
+    if not IS_MACOS:
+        return True  # Windows/Linux don't gate input simulation
     try:
         from ApplicationServices import AXIsProcessTrusted
     except Exception:
@@ -17,6 +25,8 @@ def accessibility_trusted() -> bool:
 # AVAuthorizationStatus: 0 not-determined, 1 restricted, 2 denied, 3 authorized
 def camera_authorized() -> bool:
     """True if the camera is granted (or the status can't be read)."""
+    if not IS_MACOS:
+        return True
     try:
         from AVFoundation import AVCaptureDevice, AVMediaTypeVideo
 
@@ -28,6 +38,8 @@ def camera_authorized() -> bool:
 
 def camera_access_undecided() -> bool:
     """True only when macOS has never asked the user about the camera."""
+    if not IS_MACOS:
+        return False
     try:
         from AVFoundation import AVCaptureDevice, AVMediaTypeVideo
 
@@ -39,6 +51,8 @@ def camera_access_undecided() -> bool:
 
 def request_camera_access() -> None:
     """Trigger the macOS camera-permission prompt. Must run on the main thread."""
+    if not IS_MACOS:
+        return
     try:
         from AVFoundation import AVCaptureDevice, AVMediaTypeVideo
 

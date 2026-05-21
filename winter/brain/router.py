@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from winter.brain import youtube
 from winter.brain.intents import Intent, IntentType
 from winter.brain.localfacts import local_fact_answer
-from winter.system import macos_control
+from winter.system import control
 
 _MEDIA_LABELS = {
     "play_pause": "Play / pause",
@@ -130,16 +130,16 @@ class IntentRouter:
     def execute(self, intent: Intent, character) -> RouteResult:
         if intent.type == IntentType.VOLUME_CHANGE:
             steps = intent.amount or 1
-            level = macos_control.change_volume(steps)
+            level = control.change_volume(steps)
             return RouteResult(f"Volume {'up' if steps > 0 else 'down'} — now {level}%.")
 
         if intent.type == IntentType.VOLUME_SET:
-            level = macos_control.set_volume(intent.amount)
+            level = control.set_volume(intent.amount)
             return RouteResult(f"Volume set to {level}%.")
 
         if intent.type == IntentType.MEDIA:
             action = intent.media_action or "play_pause"
-            method = macos_control.media(action)
+            method = control.media(action)
             if method == "youtube" and action in ("next", "previous"):
                 label = "Next video." if action == "next" else "Previous video."
                 return RouteResult(label)

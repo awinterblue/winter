@@ -1,8 +1,12 @@
 # Winter — project guide
 
-Winter is a local-first AI desktop assistant for macOS: voice commands, camera
-hand gestures, an on-screen character sprite, and switchable personalities.
+Winter is a local-first AI desktop assistant: voice commands, camera hand
+gestures, an on-screen character sprite, and switchable personalities.
 Everything runs offline except web-search answers.
+
+Fully working on **macOS**. A **Windows** port exists (`winter/system/`
+dispatches to Win32/pycaw backends) but is **untested on real hardware** —
+verify it on a Windows machine before relying on it.
 
 ## Running it
 
@@ -49,7 +53,8 @@ of Qt signals — nothing else talks across threads directly.
   (faster-whisper), `tts.py` + `tts_thread.py` (Chatterbox / Piper), `sounds.py`
 - `brain/` — `llm.py` (Ollama), `router.py` (intent routing), `intents.py`,
   `localfacts.py` (date/time), `websearch.py` (DuckDuckGo)
-- `system/` — `macos_control.py` (volume/media keys), `cursor.py`, `permissions.py`
+- `system/` — OS-dispatched: `control.py` (volume/media keys), `cursor.py`,
+  `permissions.py` pick a `_*_macos.py` / `_*_windows.py` backend via `osinfo.py`
 - `vision/` — `camera.py`, `gestures.py`, `cursor_map.py` (One-Euro filter)
 - `ui/` — `tray.py`, `visualizer.py` (the sprite), `settings_window.py`
 

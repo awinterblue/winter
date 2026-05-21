@@ -1,5 +1,5 @@
-"""Unit tests for the pure helpers in macos_control (no system calls)."""
-from winter.system.macos_control import VOLUME_STEP, _is_youtube_url
+"""Unit tests for the pure helpers in the macOS control backend."""
+from winter.system._control_macos import VOLUME_STEP, _is_youtube_url
 
 
 def test_youtube_urls_detected():
