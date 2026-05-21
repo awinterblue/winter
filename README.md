@@ -22,11 +22,12 @@ For contributor/architecture notes see `CLAUDE.md`.
 ## Setup
 
 Requires **Python 3.12** (MediaPipe has no 3.13 wheel) and [Ollama](https://ollama.com).
+For **Windows**, see `SETUP_WINDOWS.md`.
 
 ```sh
 brew install python@3.12 uv ollama
 /opt/homebrew/opt/python@3.12/bin/python3.12 -m venv .venv
-.venv/bin/uv pip install -e .
+.venv/bin/uv pip install -e ".[voice-cloning]"   # omit [voice-cloning] for Piper-only
 ollama pull llama3.2:3b
 ```
 

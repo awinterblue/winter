@@ -53,6 +53,9 @@ class TTSThread(QThread):
         for name, factory in (("piper", PiperEngine), ("chatterbox", ChatterboxEngine)):
             try:
                 self._engines[name] = factory()
+            except ImportError:
+                # chatterbox is the optional 'voice-cloning' extra — fine to skip
+                print(f"[tts] {name} not installed — skipping (Piper voice used)")
             except Exception as exc:  # noqa: BLE001 - an engine is optional
                 print(f"[tts] {name} failed to load:", exc)
         if not self._engines:

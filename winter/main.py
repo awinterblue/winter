@@ -8,6 +8,8 @@ import sys
 # OpenCV tries to request camera permission itself, but fails from a worker
 # thread. Skip that — Winter requests camera access on the main thread instead.
 os.environ.setdefault("OPENCV_AVFOUNDATION_SKIP_AUTH", "1")
+# Windows can't always make Hugging Face cache symlinks — silence the warning.
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QApplication, QMessageBox, QSystemTrayIcon

@@ -36,7 +36,10 @@ def local_fact_answer(text: str, now: datetime | None = None) -> str | None:
 
     now = now or datetime.now()
     date_str = now.strftime(f"%A, %B {_ordinal(now.day)}, %Y")
-    time_str = now.strftime("%-I:%M %p")
+    # build the 12-hour time without %-I / %#I — those strftime directives are
+    # platform-specific (and %-I crashes on Windows)
+    hour12 = now.hour % 12 or 12
+    time_str = f"{hour12}:{now.minute:02d} {'AM' if now.hour < 12 else 'PM'}"
 
     if wants_date and wants_time:
         return f"It's {time_str} on {date_str}."

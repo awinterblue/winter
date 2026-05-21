@@ -27,8 +27,8 @@ dependencies = [
     # vision
     "mediapipe>=0.10.18",
     "opencv-python",
-    # text-to-speech — chatterbox clones voices, piper is the fast generic voice
-    "chatterbox-tts",
+    # text-to-speech — piper is the fast generic voice (always available);
+    # chatterbox (voice cloning) is an optional extra, see below
     "piper-tts",
     # macOS system control + voice-processing mic capture (echo cancellation)
     "pyobjc-framework-Quartz; sys_platform == 'darwin'",
@@ -38,8 +38,16 @@ dependencies = [
     # Windows system control — output volume via the Core Audio API
     "pycaw; sys_platform == 'win32'",
     "comtypes; sys_platform == 'win32'",
-    # perth (a chatterbox-tts dependency) still imports the legacy pkg_resources
-    "setuptools<81",
+]
+
+[project.optional-dependencies]
+# Chatterbox voice cloning — kept optional because its build dependencies
+# (perth/pkuseg) need a C compiler and don't install cleanly on stock Windows.
+# Install with:  uv pip install -e ".[voice-cloning]"
+# Without it, Winter falls back to the fast Piper voice for every character.
+voice-cloning = [
+    "chatterbox-tts",
+    "setuptools<81",   # perth still imports the legacy pkg_resources
 ]
 
 [project.scripts]

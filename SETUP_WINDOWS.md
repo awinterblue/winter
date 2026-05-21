@@ -39,6 +39,11 @@ uv venv --python 3.12            # creates .venv (downloads Python 3.12 if neede
 uv pip install -e .              # installs all dependencies (several GB, one time)
 ```
 
+This installs everything Winter needs on Windows. It uses the fast **Piper**
+voice. (Chatterbox voice-cloning is an optional extra — `.[voice-cloning]` —
+that needs a C compiler to build, so it's left out of the default Windows
+install. Winter just uses Piper for every character without it.)
+
 ## 4. Run it
 
 ```powershell

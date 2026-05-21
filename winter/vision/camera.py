@@ -29,6 +29,10 @@ class CameraThread(QThread):
     def run(self) -> None:
         try:
             self._loop()
+        except ImportError as exc:
+            self.bus.error.emit(
+                f"Camera gestures need 'mediapipe' and 'opencv-python' ({exc})."
+            )
         except Exception as exc:  # noqa: BLE001 - surfaced to the UI
             self.bus.error.emit(f"Camera failed: {exc}")
 
