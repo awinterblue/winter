@@ -4,8 +4,10 @@ PyTorch/MPS models must be created and used on a single consistent thread — a
 shared QThreadPool hands work to arbitrary threads and segfaults. This thread
 builds the voice engines on itself and serves every request from a queue.
 
-It owns both engines (Chatterbox + Piper) and routes each request to the one
-the active character asks for via `params["engine"]`. Replies are spoken
+It owns the voice engines and routes each request to the one the active
+character asks for via `params["engine"]`. Piper (the fast default voice)
+loads at startup; Chatterbox (heavy GPU voice cloning) loads lazily on first
+use, so a Piper-only session never pays its cost. Replies are spoken
 sentence-by-sentence so playback starts as soon as the first sentence is ready.
 """
 from __future__ import annotations
@@ -24,6 +26,7 @@ class TTSThread(QThread):
         self._queue: queue.Queue = queue.Queue()
         self._running = True
         self._engines: dict = {}
+        self._factories: dict = {}
 
     def speak(self, text: str, reference: Optional[Path], params: dict) -> None:
         """Queue a line to synthesize and play. Safe to call from any thread."""
@@ -38,9 +41,32 @@ class TTSThread(QThread):
         self._queue.put(None)  # unblock the queue
         self.wait(8000)
 
+    def _ensure_engine(self, name: str):
+        """Return a TTS engine, building it on first use (on this thread).
+
+        Piper is built at startup; Chatterbox is built the first time a
+        character actually asks for it. A factory that fails (or isn't
+        installed) is dropped so it isn't retried on every later request.
+        """
+        if name in self._engines:
+            return self._engines[name]
+        factory = self._factories.get(name)
+        if factory is None:
+            return None
+        self._factories[name] = None  # one attempt only
+        try:
+            self._engines[name] = factory()
+            return self._engines[name]
+        except ImportError:
+            # chatterbox is the optional 'voice-cloning' extra — fine to skip
+            print(f"[tts] {name} not installed — skipping (Piper voice used)")
+        except Exception as exc:  # noqa: BLE001 - an engine is optional
+            print(f"[tts] {name} failed to load:", exc)
+        return None
+
     def _engine_for(self, params: dict):
-        name = (params or {}).get("engine", "chatterbox")
-        engine = self._engines.get(name)
+        name = (params or {}).get("engine", "piper")
+        engine = self._ensure_engine(name)
         if engine is None and self._engines:
             engine = next(iter(self._engines.values()))  # fallback
         return engine
@@ -48,16 +74,13 @@ class TTSThread(QThread):
     def run(self) -> None:
         from winter.audio.tts import (ChatterboxEngine, PiperEngine,
                                       play_audio, split_sentences)
+        self._factories = {"piper": PiperEngine, "chatterbox": ChatterboxEngine}
 
-        # Piper first — it loads in a second or two; Chatterbox takes longer
-        for name, factory in (("piper", PiperEngine), ("chatterbox", ChatterboxEngine)):
-            try:
-                self._engines[name] = factory()
-            except ImportError:
-                # chatterbox is the optional 'voice-cloning' extra — fine to skip
-                print(f"[tts] {name} not installed — skipping (Piper voice used)")
-            except Exception as exc:  # noqa: BLE001 - an engine is optional
-                print(f"[tts] {name} failed to load:", exc)
+        # Build Piper now — it loads in a second or two and is the default
+        # voice. Chatterbox is heavy (voice cloning on the GPU); build it
+        # lazily on first use so a Piper-only session never pays its load
+        # cost — nor risks its occasional GPU stalls.
+        self._ensure_engine("piper")
         if not self._engines:
             self.bus.tts_ready.emit(False)
             return
