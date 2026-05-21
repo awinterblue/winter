@@ -48,6 +48,17 @@ uv pip install -e .              # installs all dependencies (several GB, one ti
 The first launch downloads the speech and hand-tracking models automatically
 (~50 MB). Winter appears in the **system tray** (notification area).
 
+## Launching it the easy way
+
+Once it works, you don't need PowerShell — just **double-click `winter.bat`**
+in the project folder. It starts Winter with no console window (the assistant
+appears in the system tray). Right-click `winter.bat` → *Create shortcut* and
+drag the shortcut to your Desktop or pin it to the taskbar for one-click access.
+
+While you're still **debugging the Windows port**, keep launching with
+`python -m winter` in PowerShell — that shows the error output. `winter.bat`
+hides the console, so you wouldn't see errors.
+
 ## Notes
 
 - **Models** (speech, hand-tracking) download themselves on first run; the
