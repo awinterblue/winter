@@ -13,3 +13,10 @@ Winter.app/
 # raw voice-clip source material — the processed reference.wav is what's kept
 config/characters/*/voicelines/*
 !config/characters/*/voicelines/README.md
+# per-user runtime state — Winter recreates settings.yaml from defaults
+config/settings.yaml
+# Claude Code's per-machine local settings
+.claude/settings.local.json
+# logs
+winter.log
+*.log
