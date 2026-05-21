@@ -55,14 +55,15 @@ The first launch downloads the speech and hand-tracking models automatically
 
 ## Launching it the easy way
 
-Once it works, you don't need PowerShell — just **double-click `winter.bat`**
-in the project folder. It starts Winter with no console window (the assistant
-appears in the system tray). Right-click `winter.bat` → *Create shortcut* and
-drag the shortcut to your Desktop or pin it to the taskbar for one-click access.
+Two launchers sit in the project folder:
 
-While you're still **debugging the Windows port**, keep launching with
-`python -m winter` in PowerShell — that shows the error output. `winter.bat`
-hides the console, so you wouldn't see errors.
+- **`winter.vbs`** — double-click for a clean, **no-window** start (the
+  assistant just appears in the system tray). Output goes to `winter.log`, so
+  if Winter doesn't appear, open that file to see the error. Right-click
+  `winter.vbs` → *Create shortcut* and drag it to your Desktop or pin it for
+  one-click access.
+- **`winter.bat`** — double-click to run with a **visible console** that shows
+  live output — handy for troubleshooting.
 
 ## Notes
 

@@ -1,7 +1,5 @@
 @echo off
-REM Winter launcher — double-click to start the assistant.
-REM Runs without a console window; Winter appears in the system tray.
-REM (While debugging the Windows port, run "python -m winter" in PowerShell
-REM  instead so you can see error output.)
+REM Winter launcher (console version) — shows live output, good for debugging.
+REM For a clean no-window launch, double-click winter.vbs instead.
 cd /d "%~dp0"
-start "" ".venv\Scripts\pythonw.exe" -m winter
+".venv\Scripts\python.exe" -m winter
