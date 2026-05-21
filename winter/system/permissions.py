@@ -22,6 +22,28 @@ def accessibility_trusted() -> bool:
         return True
 
 
+def prompt_accessibility() -> bool:
+    """Register Winter in the Accessibility list and show the system prompt.
+
+    macOS never auto-prompts for Accessibility (unlike the camera/mic), so an
+    app must ask. This adds Winter to System Settings → Privacy & Security →
+    Accessibility (switch off) and pops the dialog — the user then only has to
+    flip that one switch. Returns the current trusted state.
+    """
+    if not IS_MACOS:
+        return True
+    try:
+        from ApplicationServices import AXIsProcessTrustedWithOptions
+        try:
+            from ApplicationServices import kAXTrustedCheckOptionPrompt
+            key = kAXTrustedCheckOptionPrompt
+        except Exception:
+            key = "AXTrustedCheckOptionPrompt"
+        return bool(AXIsProcessTrustedWithOptions({key: True}))
+    except Exception:
+        return accessibility_trusted()
+
+
 # AVAuthorizationStatus: 0 not-determined, 1 restricted, 2 denied, 3 authorized
 def camera_authorized() -> bool:
     """True if the camera is granted (or the status can't be read)."""
@@ -67,8 +89,8 @@ def permission_hints() -> list[str]:
     hints: list[str] = []
     if not accessibility_trusted():
         hints.append(
-            "Accessibility is OFF — media keys won't work. Grant it to your "
-            "terminal app: System Settings -> Privacy & Security -> "
-            "Accessibility, then restart Winter."
+            "Accessibility is OFF — media keys and camera cursor control "
+            "won't work. Switch on Winter in System Settings → Privacy & "
+            "Security → Accessibility, then restart Winter."
         )
     return hints

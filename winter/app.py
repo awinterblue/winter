@@ -86,6 +86,8 @@ class AppController(QObject):
             self.visualizer.show_orb()
         if self.state.camera_enabled:
             self._start_camera()
+        if not permissions.accessibility_trusted():
+            permissions.prompt_accessibility()  # register Winter + show dialog
         for hint in permissions.permission_hints():
             print("[permissions]", hint)
             self.bus.status_message.emit(hint)
@@ -229,7 +231,9 @@ class AppController(QObject):
             return
         if not permissions.accessibility_trusted():
             self.bus.status_message.emit(
-                "Camera needs Accessibility permission to move the cursor."
+                "Camera commands need Accessibility — switch on Winter in "
+                "System Settings → Privacy & Security → Accessibility, then "
+                "restart Winter."
             )
         self.camera_thread = CameraThread(self.bus, self.settings)
         self.camera_thread.start()
