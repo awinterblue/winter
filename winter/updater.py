@@ -38,13 +38,29 @@ def check_for_update() -> bool:
         return False
 
 
+def _pyproject_text() -> str:
+    try:
+        return (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
 def apply_update() -> None:
-    """Pull the latest version and reinstall it. Raises on failure."""
+    """Pull the latest version, reinstalling only if dependencies changed.
+
+    Winter is an editable install, so a code-only update needs no reinstall —
+    the new source is simply live on the next launch. The slower pip step runs
+    only when pyproject.toml changed (its dependencies might have), which keeps
+    the common code-only update down to a quick `git pull`. Raises on failure.
+    """
+    deps_before = _pyproject_text()
     _git("pull", "--ff-only", "origin", "main", check=True, timeout=120)
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--quiet", "-e", str(PROJECT_ROOT)],
-        check=True, timeout=600,
-    )
+    if _pyproject_text() != deps_before:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--quiet", "-e",
+             str(PROJECT_ROOT)],
+            check=True, timeout=600,
+        )
 
 
 def relaunch() -> None:

@@ -161,14 +161,19 @@ class AppController(QObject):
                   on_error=self._on_update_failed)
 
     def _on_update_installed(self, _result) -> None:
+        from PyQt6.QtCore import Qt
         from PyQt6.QtWidgets import QApplication, QMessageBox
 
         self.tray.set_update_available(False)
-        answer = QMessageBox.question(
-            None, "Winter updated",
-            "Winter has been updated. Restart it now to use the new version?",
+        self.bus.status_message.emit("Update installed.")
+        box = QMessageBox(
+            QMessageBox.Icon.Information, "Winter updated",
+            "Winter has been updated.\n\nRestart it now to use the new version?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-        if answer == QMessageBox.StandardButton.Yes:
+        # float above other windows so a tray-only app's dialog can't hide
+        box.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+        if box.exec() == QMessageBox.StandardButton.Yes:
             relaunch()
             app = QApplication.instance()
             if app is not None:
