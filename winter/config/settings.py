@@ -72,7 +72,7 @@ class Settings:
         path = path or (CONFIG_DIR / "settings.yaml")
         data = {}
         if path.exists():
-            data = yaml.safe_load(path.read_text()) or {}
+            data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         settings = cls(
             active_character=data.get("active_character", "default"),
             voice_enabled=bool(data.get("voice_enabled", True)),
@@ -102,4 +102,7 @@ class Settings:
         if not self.path:
             return
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(yaml.safe_dump(self.to_dict(), sort_keys=False))
+        self.path.write_text(
+            yaml.safe_dump(self.to_dict(), sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )

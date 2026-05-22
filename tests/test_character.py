@@ -69,3 +69,15 @@ def test_delete_character_removes_the_folder(tmp_path):
     assert manager.delete("goner") is True
     assert manager.get("goner") is None
     assert not (tmp_path / "goner").exists()
+
+
+def test_create_character_handles_unicode(tmp_path):
+    # names/personalities with emoji or non-Latin text must survive the
+    # round-trip through character.yaml — written and read as UTF-8, not the
+    # Windows-default cp1252 (which would corrupt or crash on these)
+    manager = CharacterManager(characters_dir=tmp_path)
+    manager.create("星 Star", "Hey Star", "Speaks with sparkle ✨ and 日本語.")
+    reloaded = CharacterManager(characters_dir=tmp_path).get("star")
+    assert reloaded is not None
+    assert reloaded.display_name == "星 Star"
+    assert "✨" in reloaded.personality_prompt

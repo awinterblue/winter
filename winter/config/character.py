@@ -206,7 +206,8 @@ class CharacterManager:
                 "sprite_editable": True,
             }
             (directory / "character.yaml").write_text(
-                yaml.safe_dump(data, sort_keys=False, allow_unicode=True)
+                yaml.safe_dump(data, sort_keys=False, allow_unicode=True),
+                encoding="utf-8",
             )
         except Exception:
             shutil.rmtree(directory, ignore_errors=True)  # no half-built folder
@@ -228,7 +229,7 @@ class CharacterManager:
 
     @staticmethod
     def _load_one(directory: Path, cfg_path: Path) -> Character:
-        data = yaml.safe_load(cfg_path.read_text()) or {}
+        data = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
         ref_name = data.get("voice_reference", "reference.wav")
         ref_path = _resolve_voice_reference(directory, ref_name)
         return Character(
