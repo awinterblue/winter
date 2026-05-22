@@ -2,8 +2,9 @@
 
 Setup for testing the Windows port on a Windows 10/11 (64-bit) PC.
 
-> ⚠️ The Windows port is **untested on real hardware**. Expect bugs — note any
-> errors and report them back so they can be fixed.
+> The Windows port has been tested on a Windows 11 PC — voice, camera, volume
+> and media keys all work. It's newer than the macOS build, so if you hit a
+> problem, note the error and report it.
 
 ## 1. Install the prerequisites
 
@@ -29,7 +30,6 @@ by hand.)
 ```powershell
 git clone https://github.com/awinterblue/winter.git
 cd winter
-git checkout windows-port
 ```
 
 ## 3. Create the environment and install
