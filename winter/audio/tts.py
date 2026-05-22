@@ -96,17 +96,19 @@ class ChatterboxEngine(TTSEngine):
         import torch
         from chatterbox.tts import ChatterboxTTS
 
-        # Run on CPU rather than Apple's MPS GPU backend: MPS can deadlock
-        # mid-generation (a known torch/MPS bug), silently freezing the voice
-        # thread. CPU is slower but never stalls. CUDA (NVIDIA) has no such
-        # bug, so it is still used when available.
-        if torch.cuda.is_available():
+        # Prefer the GPU (Apple MPS / NVIDIA CUDA): it keeps the CPU free, so
+        # the UI and the always-on wake word stay responsive while a voice
+        # generates. MPS can rarely deadlock mid-generation — building
+        # Chatterbox lazily (not during the busy startup, when the GPU is
+        # already contended) is what avoids that.
+        if torch.backends.mps.is_available():
+            self.device = "mps"
+        elif torch.cuda.is_available():
             self.device = "cuda"
         else:
             self.device = "cpu"
             # CPU generation left unbounded grabs every core — starving the UI
-            # and the always-on wake-word thread until the whole app feels
-            # frozen. Cap it at half the cores so the rest stays responsive.
+            # and the wake-word thread. Cap it so the rest stays responsive.
             torch.set_num_threads(max(2, (os.cpu_count() or 4) // 2))
         self._model = ChatterboxTTS.from_pretrained(self.device)
         self.sample_rate = int(getattr(self._model, "sr", _DEFAULT_SR))
