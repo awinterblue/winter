@@ -20,6 +20,7 @@ from winter.core.events import EventBus
 from winter.core.state import AppState, Phase
 from winter.core.worker import Worker
 from winter.system import control, cursor, permissions
+from winter.updater import apply_update, check_for_update, relaunch
 from winter.ui.character_dialog import CreateCharacterDialog
 from winter.ui.settings_window import SettingsWindow
 from winter.ui.tray import TrayController
@@ -96,6 +97,7 @@ class AppController(QObject):
         self.bus.status_message.emit("Warming up models…")
         self.tts_thread.start()  # builds the voice engine on its own thread
         self._warm_models()
+        self.check_for_updates()  # quietly check GitHub for a newer version
 
     # ----------------------------------------------------------------- phase
     def _set_phase(self, phase: Phase) -> None:
@@ -131,6 +133,49 @@ class AppController(QObject):
     def open_create_character(self) -> None:
         """Open the modal 'Create a Character' dialog."""
         CreateCharacterDialog(self).exec()
+
+    # ---------------------------------------------------------------- updates
+    def check_for_updates(self, announce_uptodate: bool = False) -> None:
+        """Check GitHub for a newer version of Winter, on a worker thread."""
+        self._announce_uptodate = announce_uptodate
+        if announce_uptodate:
+            self.bus.status_message.emit("Checking for updates…")
+        self._run(check_for_update, on_result=self._on_update_check)
+
+    def _on_update_check(self, available: bool) -> None:
+        self.tray.set_update_available(available)
+        if available:
+            self.bus.status_message.emit(
+                "An update is available — open the menu to install it."
+            )
+        elif getattr(self, "_announce_uptodate", False):
+            self.bus.status_message.emit("Winter is up to date.")
+        self._announce_uptodate = False
+
+    def install_update(self) -> None:
+        """Pull and install the latest version, then offer to restart."""
+        self.bus.status_message.emit(
+            "Installing update — this may take a minute…"
+        )
+        self._run(apply_update, on_result=self._on_update_installed,
+                  on_error=self._on_update_failed)
+
+    def _on_update_installed(self, _result) -> None:
+        from PyQt6.QtWidgets import QApplication, QMessageBox
+
+        self.tray.set_update_available(False)
+        answer = QMessageBox.question(
+            None, "Winter updated",
+            "Winter has been updated. Restart it now to use the new version?",
+        )
+        if answer == QMessageBox.StandardButton.Yes:
+            relaunch()
+            app = QApplication.instance()
+            if app is not None:
+                app.quit()
+
+    def _on_update_failed(self, error) -> None:
+        self.bus.status_message.emit(f"Update failed — {error}")
 
     # ------------------------------------------------------------- worker util
     def _run(self, fn: Callable, on_result: Optional[Callable] = None,

@@ -67,6 +67,11 @@ class TrayController:
         settings_action.triggered.connect(controller.open_settings)
         self.menu.addAction(settings_action)
 
+        self._update_ready = False
+        self._update = QAction("Check for Updates", self.menu)
+        self._update.triggered.connect(self._on_update_clicked)
+        self.menu.addAction(self._update)
+
         quit_action = QAction("Quit Winter", self.menu)
         quit_action.triggered.connect(self._quit)
         self.menu.addAction(quit_action)
@@ -118,6 +123,19 @@ class TrayController:
         self._visualizer.blockSignals(True)
         self._visualizer.setChecked(shown)
         self._visualizer.blockSignals(False)
+
+    def _on_update_clicked(self) -> None:
+        if self._update_ready:
+            self.controller.install_update()
+        else:
+            self.controller.check_for_updates(announce_uptodate=True)
+
+    def set_update_available(self, available: bool) -> None:
+        """Reflect an available update in the menu item."""
+        self._update_ready = available
+        self._update.setText(
+            "Update Winter — install now" if available else "Check for Updates"
+        )
 
     def _quit(self) -> None:
         app = QApplication.instance()
