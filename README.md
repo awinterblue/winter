@@ -112,3 +112,9 @@ Under the hood each character is a folder in `config/characters/<id>/` with a
 create stay **local to your machine** — only the built-in "Winter" character
 ships with the repo. `tts.engine` picks the voice: `piper` (fast, generic) or
 `chatterbox` (clones a `reference.wav`; needs `scripts/setup_voice.py`).
+
+## License
+
+Winter is **not** open-source software. The source is published so people can
+download and run it for **personal, non-commercial use** — redistributing,
+republishing, and commercial use are not permitted. See [`LICENSE`](LICENSE).
