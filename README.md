@@ -27,8 +27,16 @@ For **Windows**, see `SETUP_WINDOWS.md`.
 ```sh
 brew install python@3.12 uv ollama
 /opt/homebrew/opt/python@3.12/bin/python3.12 -m venv .venv
-.venv/bin/uv pip install -e ".[voice-cloning]"   # omit [voice-cloning] for Piper-only
+.venv/bin/uv pip install -e .
 ollama pull llama3.2:3b
+```
+
+Every character uses the fast built-in Piper voice. To enable voice **cloning**
+(so a character can clone a voice from an uploaded clip), set up its isolated
+environment once — this needs no compiler on any platform:
+
+```sh
+.venv/bin/python scripts/setup_voice.py
 ```
 
 ## Run

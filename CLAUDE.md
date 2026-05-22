@@ -20,6 +20,11 @@ Or double-click **Winter.app** (a thin launcher — see Packaging below).
 3.12), [Ollama](https://ollama.com) running with `llama3.2:3b` pulled. The venv
 already has every dependency installed.
 
+**Voice cloning** (optional) runs in its own isolated environment, `.venv-voice`,
+so Chatterbox's heavy dependencies stay out of the main venv. Create it with
+`.venv/bin/python scripts/setup_voice.py`; without it every character uses the
+fast Piper voice.
+
 Winter lives in the **menu bar** (system tray). It has no main window.
 
 ## Testing & verification
@@ -50,7 +55,8 @@ of Qt signals — nothing else talks across threads directly.
 - `config/` — `settings.py` (settings.yaml), `character.py` (character folders)
 - `core/` — `events.py` (EventBus), `state.py` (AppState/Phase), `worker.py`
 - `audio/` — `capture.py`, `micsource.py`, `wakeword.py` (Vosk), `stt.py`
-  (faster-whisper), `tts.py` + `tts_thread.py` (Chatterbox / Piper), `sounds.py`
+  (faster-whisper), `tts.py` + `tts_thread.py` (Piper + a Chatterbox client),
+  `_chatterbox_worker.py` + `voice_env.py` (isolated voice cloning), `sounds.py`
 - `brain/` — `llm.py` (Ollama), `router.py` (intent routing), `intents.py`,
   `localfacts.py` (date/time), `websearch.py` (DuckDuckGo)
 - `system/` — OS-dispatched: `control.py` (volume/media keys), `cursor.py`,

@@ -111,3 +111,12 @@ class TTSThread(QThread):
                 print("[tts] synthesis failed:", exc)
             finally:
                 self.bus.tts_finished.emit()
+
+        # shut any engine subprocesses (the isolated voice worker) down cleanly
+        for engine in self._engines.values():
+            closer = getattr(engine, "close", None)
+            if closer is not None:
+                try:
+                    closer()
+                except Exception:  # noqa: BLE001
+                    pass

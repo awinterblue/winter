@@ -1,4 +1,5 @@
 .venv/
+.venv-voice/
 __pycache__/
 *.pyc
 *.egg-info/

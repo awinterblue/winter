@@ -41,15 +41,10 @@ dependencies = [
     "comtypes; sys_platform == 'win32'",
 ]
 
-[project.optional-dependencies]
-# Chatterbox voice cloning — kept optional because its build dependencies
-# (perth/pkuseg) need a C compiler and don't install cleanly on stock Windows.
-# Install with:  uv pip install -e ".[voice-cloning]"
-# Without it, Winter falls back to the fast Piper voice for every character.
-voice-cloning = [
-    "chatterbox-tts",
-    "setuptools<81",   # perth still imports the legacy pkg_resources
-]
+# Voice cloning (the Chatterbox engine) is deliberately NOT a dependency here.
+# It runs in its own isolated environment, created by scripts/setup_voice.py,
+# so its heavy version pins never collide with the main app's. Without it,
+# Winter falls back to the fast Piper voice for every character.
 
 [project.scripts]
 winter = "winter.main:main"
@@ -63,8 +58,3 @@ include = ["winter*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
-[tool.uv.extra-build-dependencies]
-# pkuseg (a chatterbox-tts dependency) needs numpy at build time but does
-# not declare it — supply it so the sdist builds.
-pkuseg = ["numpy"]

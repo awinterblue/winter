@@ -39,10 +39,9 @@ uv venv --python 3.12            # creates .venv (downloads Python 3.12 if neede
 uv pip install -e .              # installs all dependencies (several GB, one time)
 ```
 
-This installs everything Winter needs on Windows. It uses the fast **Piper**
-voice. (Chatterbox voice-cloning is an optional extra — `.[voice-cloning]` —
-that needs a C compiler to build, so it's left out of the default Windows
-install. Winter just uses Piper for every character without it.)
+This installs everything Winter needs to run. Every character uses the fast
+**Piper** voice by default; voice **cloning** is an optional add-on — see
+"Voice cloning" below.
 
 ## 4. Run it
 
@@ -52,6 +51,21 @@ install. Winter just uses Piper for every character without it.)
 
 The first launch downloads the speech and hand-tracking models automatically
 (~50 MB). Winter appears in the **system tray** (notification area).
+
+## Voice cloning (optional)
+
+By default Winter speaks every character in the fast built-in Piper voice. To
+let a character clone a voice from an uploaded clip, set up the voice
+environment once:
+
+```powershell
+.venv\Scripts\python scripts\setup_voice.py
+```
+
+This creates a separate `.venv-voice` environment and installs the Chatterbox
+voice-cloning engine into it (a few GB — it runs fully isolated, so its
+dependencies never clash with the main app, and **no C compiler is needed**).
+Restart Winter when it finishes.
 
 ## Launching it the easy way
 
