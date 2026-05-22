@@ -279,16 +279,18 @@ class AppController(QObject):
         self.visualizer.set_character(character)  # swap to its sprite art
         self._prime_tts_voice()  # pre-load the new character's voice
 
-        # rebuild the wake engine only if the new character listens differently
+        # the wake engine listens for one fixed phrase — if the new character
+        # uses a different wake word, tear it and the audio thread down
         if (self._wake_engine is not None
                 and self._wake_engine.model_name != character.wake_word):
-            was_running = bool(self.audio_thread and self.audio_thread.isRunning())
             if self.audio_thread:
                 self.audio_thread.stop()
             self.audio_thread = None
             self._wake_engine = None
-            if was_running and self.state.voice_enabled:
-                self._start_voice()
+        # (re)start voice for the new character — idempotent when it is already
+        # running with the right wake word, and recovers it if it had stopped
+        if self.state.voice_enabled and self.stt is not None:
+            self._start_voice()
         self.bus.state_changed.emit()
 
     def create_character(self, name: str, wake_word: str, personality: str,

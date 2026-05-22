@@ -91,6 +91,8 @@ class ChatterboxEngine(TTSEngine):
     """Voice cloning from a reference clip. High quality, slow."""
 
     def __init__(self) -> None:
+        import os
+
         import torch
         from chatterbox.tts import ChatterboxTTS
 
@@ -102,6 +104,10 @@ class ChatterboxEngine(TTSEngine):
             self.device = "cuda"
         else:
             self.device = "cpu"
+            # CPU generation left unbounded grabs every core — starving the UI
+            # and the always-on wake-word thread until the whole app feels
+            # frozen. Cap it at half the cores so the rest stays responsive.
+            torch.set_num_threads(max(2, (os.cpu_count() or 4) // 2))
         self._model = ChatterboxTTS.from_pretrained(self.device)
         self.sample_rate = int(getattr(self._model, "sr", _DEFAULT_SR))
         self._default_conds = getattr(self._model, "conds", None)
