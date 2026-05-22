@@ -1,9 +1,8 @@
-"""Winter's on-screen visualizer — a glowing, audio-reactive orb.
+"""Winter's on-screen visualizer — glowing, audio-reactive sound-wave rings.
 
-A soft orb that floats on screen and reacts to what Winter is doing: it tints
-by state, bobs gently, hops when it starts listening, and pulses with rings
-and ripples while it speaks. A character can override it with its own sprite
-art (see set_character) — this is the built-in look.
+A bright core ringed by concentric pulses: they tint by state, breathe gently
+when idle, and surge outward with Winter's voice. A character can override
+this with its own sprite art (see set_character) — this is the built-in look.
 
 Transparent, always-on-top, draggable. Driven entirely through set_level and
 set_state.
@@ -202,13 +201,13 @@ class VisualizerWidget(QWidget):
         painter.setBrush(glow)
         painter.drawEllipse(centre, size * 0.5, size * 0.5)
 
-        # audio-reactive aura framing the sprite
-        self._draw_aura(painter, cx, cy, size, color, level, t)
-
         if self._pixmaps:
+            # a character's own art, framed by the audio-reactive aura
+            self._draw_aura(painter, cx, cy, size, color, level, t)
             self._draw_image_sprite(painter, cx, cy, size, level)
         else:
-            self._draw_code_sprite(painter, cx, cy, size, t, level)
+            # the built-in look — a glowing core ringed by sound waves
+            self._draw_visualizer(painter, size, color, level, t)
 
     def _draw_aura(self, painter: QPainter, cx: float, cy: float, size: int,
                    color: QColor, level: float, t: float) -> None:
@@ -250,20 +249,49 @@ class VisualizerWidget(QWidget):
         painter.drawPixmap(int(cx - scaled.width() / 2),
                            int(cy - scaled.height() / 2), scaled)
 
-    def _draw_code_sprite(self, painter: QPainter, cx: float, cy: float,
-                          size: int, t: float, level: float) -> None:
-        """Winter's built-in look — a soft glowing orb (the fallback sprite)."""
-        color = _STATE_COLORS[self._state]
-        squash = 1.0 - math.sin(t * 2.2) * 0.04 + level * 0.05
-        body_w = size * 0.56
-        body_h = size * 0.56 * squash
+    def _draw_visualizer(self, painter: QPainter, size: int, color: QColor,
+                         level: float, t: float) -> None:
+        """The built-in look — a glowing core ringed by pulsing sound waves."""
+        c = size / 2
+        centre = QPointF(c, c)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
 
-        body = QRadialGradient(cx - body_w * 0.22, cy - body_h * 0.3, body_w)
-        body.setColorAt(0.0, QColor(color).lighter(155))
-        body.setColorAt(1.0, color)
+        inner = size * 0.12
+        outer = size * 0.40
+
+        # concentric rings — each on its own phase, so they ripple gently even
+        # in silence and surge brighter and wider with the voice
+        rings = 5
+        for i in range(rings):
+            phase = math.sin(t * 2.0 - i * 0.9)          # -1..1, per-ring offset
+            frac = (i + 0.5) / rings
+            radius = inner + (outer - inner) * frac
+            radius += size * 0.015 * phase               # idle breathing
+            radius += size * 0.06 * level                # voice pushes rings out
+            alpha = (95 + 85 * level) * (0.6 + 0.4 * phase) * (1.0 - 0.5 * frac)
+            ring = QColor(color)
+            ring.setAlpha(max(0, min(255, int(alpha))))
+            painter.setPen(QPen(ring, 1.4 + 2.6 * level))
+            painter.drawEllipse(centre, radius, radius)
+
+        # sound-wave ripples — expand outward while Winter speaks
+        for progress in self._ripples:
+            radius = inner + (outer - inner + size * 0.07) * progress
+            ring = QColor(color)
+            ring.setAlpha(max(0, min(255, int(200 * (1.0 - progress)))))
+            painter.setPen(QPen(ring, 2.6))
+            painter.drawEllipse(centre, radius, radius)
+
+        # the bright core at the centre
+        core_r = size * (0.07 + 0.04 * level)
+        core = QRadialGradient(centre, core_r)
+        core.setColorAt(0.0, QColor(color).lighter(185))
+        edge = QColor(color)
+        edge.setAlpha(0)
+        core.setColorAt(1.0, edge)
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(body)
-        painter.drawEllipse(QPointF(cx, cy), body_w / 2, body_h / 2)
+        painter.setBrush(core)
+        painter.drawEllipse(centre, core_r, core_r)
 
     # -------------------------------------------------------------- drag-to-move
     def mousePressEvent(self, event) -> None:  # noqa: N802
