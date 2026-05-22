@@ -15,6 +15,19 @@ from PyQt6.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                              QPlainTextEdit, QPushButton, QVBoxLayout)
 
 
+def _voice_clip_hint() -> str:
+    """The note under the voice-clip picker — flags when voice cloning isn't
+    installed, so an uploaded clip isn't silently ignored at speak time."""
+    from winter.audio.voice_env import voice_python
+
+    if voice_python() is None:
+        return ("Voice cloning isn't set up — run scripts/setup_voice.py to "
+                "enable it. Until then a clip is saved with the character, "
+                "but it speaks in the default voice.")
+    return ("A clip of the voice to clone. Skip it and the character uses the "
+            "fast default voice.")
+
+
 class CreateCharacterDialog(QDialog):
     """Collects character details and asks the controller to create it."""
 
@@ -58,10 +71,7 @@ class CreateCharacterDialog(QDialog):
         self._voice_btn = QPushButton("Choose audio or video…")
         self._voice_btn.clicked.connect(self._choose_voice)
         form.addRow("Voice clip (optional)", self._voice_btn)
-        form.addRow("", self._hint(
-            "A clip of the voice to clone. Skip it and the character uses the "
-            "fast default voice."
-        ))
+        form.addRow("", self._hint(_voice_clip_hint()))
 
         self._status = self._hint("")
         layout.addWidget(self._status)
