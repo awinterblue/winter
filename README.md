@@ -1,8 +1,8 @@
 # Winter
 
-A local-first AI desktop assistant for macOS. Voice commands, camera hand
-gestures, and switchable character personalities — running fully offline (only
-web-search questions touch the internet).
+A local-first AI desktop assistant for **macOS and Windows**. Voice commands,
+camera hand gestures, and switchable character personalities — running fully
+offline (only web-search questions touch the internet).
 
 - **Voice** — custom wake word (Vosk) → speech-to-text (`faster-whisper`) →
   intent → action;
@@ -12,32 +12,37 @@ web-search questions touch the internet).
 - **Brain** — local LLM via Ollama
 - **Voice replies** — local neural TTS with character voice cloning
 - **Camera** — MediaPipe hand tracking: swipe gestures + fingertip cursor
-- **Characters** — switchable personalities and voices (e.g. Hu Tao)
+- **Characters** — create your own (name, personality, sprite, cloned voice) and switch between them
 - **Visualizer** — a transparent, always-on-top audio-reactive widget
 
 All five build phases are complete: voice commands, personality + voice +
 web Q&A, the on-screen sprite, camera gestures, and polish + packaging.
 For contributor/architecture notes see `CLAUDE.md`.
 
-## Setup
+## Install
 
-Requires **Python 3.12** (MediaPipe has no 3.13 wheel) and [Ollama](https://ollama.com).
-For **Windows**, see `SETUP_WINDOWS.md`.
+First install the two prerequisites — **[uv](https://docs.astral.sh/uv/)**
+(`brew install uv`) and **[Ollama](https://ollama.com)**. Then:
 
 ```sh
-brew install python@3.12 uv ollama
-/opt/homebrew/opt/python@3.12/bin/python3.12 -m venv .venv
-.venv/bin/uv pip install -e .
+git clone https://github.com/awinterblue/winter.git
+cd winter
+./scripts/install.sh          # Windows:  scripts\install.ps1
 ollama pull llama3.2:3b
 ```
 
+`install.sh` creates the Python 3.12 environment and installs everything (a few
+GB, one time). For the full Windows walkthrough see `SETUP_WINDOWS.md`.
+
 Every character uses the fast built-in Piper voice. To enable voice **cloning**
 (so a character can clone a voice from an uploaded clip), set up its isolated
-environment once — this needs no compiler on any platform:
+environment once — no compiler needed, on any platform:
 
 ```sh
 .venv/bin/python scripts/setup_voice.py
 ```
+
+To update later: `./scripts/update.sh` (Windows: `scripts\update.ps1`).
 
 ## Run
 
@@ -84,15 +89,12 @@ they apply to your terminal app; when run as **Winter.app** they apply to Winter
 
 ## Characters
 
-Each character is a folder under `config/characters/<id>/`:
+The easy way: tray menu → **Create Character…** — give it a name, a personality,
+and optionally a sprite image and a voice clip (audio or video). Winter builds
+the character and switches to it. Remove characters from the Settings window.
 
-- `character.yaml` — display name, wake word, personality prompt, TTS params
-- `voicelines/` — drop raw voice clips here (any format: .mov, .mp3, .wav …)
-- `reference.wav` — the processed ~10–20 s clip Winter clones the voice from
-
-`tts.engine` in `character.yaml` picks the voice:
-
-- `chatterbox` — clones `reference.wav` (sounds like the character, slower)
-- `piper` — a fast, generic voice, near real-time (set `tts.voice`)
-
-Add a folder to add a character; switch the active one from the tray menu.
+Under the hood each character is a folder in `config/characters/<id>/` with a
+`character.yaml` (name, wake word, personality, TTS settings). Characters you
+create stay **local to your machine** — only the built-in "Winter" character
+ships with the repo. `tts.engine` picks the voice: `piper` (fast, generic) or
+`chatterbox` (clones a `reference.wav`; needs `scripts/setup_voice.py`).

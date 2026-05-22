@@ -11,9 +11,10 @@ models/
 .cache/
 # generated app bundle (recreate with scripts/make_app.sh)
 Winter.app/
-# raw voice-clip source material — the processed reference.wav is what's kept
-config/characters/*/voicelines/*
-!config/characters/*/voicelines/README.md
+# only the built-in "default" character ships — characters you create, with
+# their own sprites and voice clips, stay local to your machine
+config/characters/*
+!config/characters/default/
 # per-user runtime state — Winter recreates settings.yaml from defaults
 config/settings.yaml
 # Claude Code's per-machine local settings
