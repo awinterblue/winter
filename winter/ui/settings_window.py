@@ -5,34 +5,19 @@ from pathlib import Path
 
 from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                              QFileDialog, QFormLayout, QHBoxLayout, QLabel,
-                             QPushButton, QSpinBox, QVBoxLayout)
+                             QMessageBox, QPushButton, QSpinBox, QVBoxLayout)
 
-from winter.config.character import CUSTOM_SPRITE
+from winter.config.character import CUSTOM_SPRITE, install_sprite
 
 
 def install_sprite_image(character, source: Path) -> Path:
     """Install a user-chosen image as the character's custom sprite override
     (custom.png). The developer-placed default images are left untouched.
     Returns the written path."""
-    from PyQt6.QtCore import Qt
-    from PyQt6.QtGui import QImage
-
-    image = QImage(str(source))
-    if image.isNull():
-        raise ValueError("not a readable image file")
-    max_dim = 1024  # keep the stored sprite a sensible size
-    if image.width() > max_dim or image.height() > max_dim:
-        image = image.scaled(
-            max_dim, max_dim,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation,
-        )
     if character.sprite_dir is None:
         raise ValueError("character has no sprite folder")
-    character.sprite_dir.mkdir(parents=True, exist_ok=True)
     dest = character.sprite_dir / CUSTOM_SPRITE
-    if not image.save(str(dest), "PNG"):
-        raise IOError(f"could not write {dest}")
+    install_sprite(Path(source), dest)
     return dest
 
 
@@ -82,7 +67,15 @@ class SettingsWindow(QDialog):
         self._character.setCurrentIndex(
             max(0, self._character.findData(controller.characters.active.id))
         )
-        form.addRow("Character", self._character)
+        self._delete_char = QPushButton("Delete")
+        self._delete_char.setToolTip("Delete this character")
+        self._delete_char.clicked.connect(self._delete_character)
+        char_row = QHBoxLayout()
+        char_row.addWidget(self._character, 1)
+        char_row.addWidget(self._delete_char)
+        form.addRow("Character", char_row)
+        self._character.currentIndexChanged.connect(self._update_delete_button)
+        self._update_delete_button()
 
         self._mic = QComboBox()
         for label, index in _input_devices():
@@ -203,6 +196,36 @@ class SettingsWindow(QDialog):
         self._sprite_status.setText(
             f"{character.display_name}'s sprite reset to default."
         )
+
+    def _update_delete_button(self) -> None:
+        """The built-in 'Winter' character can't be deleted."""
+        char_id = self._character.currentData()
+        self._delete_char.setEnabled(bool(char_id) and char_id != "default")
+
+    def _delete_character(self) -> None:
+        """Delete the selected character after confirming. Applies immediately."""
+        char_id = self._character.currentData()
+        character = self.controller.characters.get(char_id)
+        if character is None or char_id == "default":
+            return
+        confirm = QMessageBox.question(
+            self, "Delete character",
+            f"Delete “{character.display_name}”? This permanently removes its "
+            f"folder, including any sprite and voice clip.",
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+        self.controller.delete_character(char_id)
+        self._character.blockSignals(True)
+        self._character.clear()
+        for c in self.controller.characters.list():
+            self._character.addItem(c.display_name, c.id)
+        self._character.setCurrentIndex(
+            max(0, self._character.findData(self.controller.characters.active.id))
+        )
+        self._character.blockSignals(False)
+        self._update_sprite_buttons()
+        self._update_delete_button()
 
     def _save(self) -> None:
         s = self.settings

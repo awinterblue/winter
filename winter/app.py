@@ -1,6 +1,7 @@
 """AppController — owns every service and routes signals between them."""
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Callable, Optional
 
 from PyQt6.QtCore import QObject, QThreadPool
@@ -19,6 +20,7 @@ from winter.core.events import EventBus
 from winter.core.state import AppState, Phase
 from winter.core.worker import Worker
 from winter.system import control, cursor, permissions
+from winter.ui.character_dialog import CreateCharacterDialog
 from winter.ui.settings_window import SettingsWindow
 from winter.ui.tray import TrayController
 from winter.ui.visualizer import VisualizerWidget
@@ -125,6 +127,10 @@ class AppController(QObject):
 
     def _on_settings_closed(self, _result: int) -> None:
         self._settings_window = None
+
+    def open_create_character(self) -> None:
+        """Open the modal 'Create a Character' dialog."""
+        CreateCharacterDialog(self).exec()
 
     # ------------------------------------------------------------- worker util
     def _run(self, fn: Callable, on_result: Optional[Callable] = None,
@@ -284,6 +290,29 @@ class AppController(QObject):
             if was_running and self.state.voice_enabled:
                 self._start_voice()
         self.bus.state_changed.emit()
+
+    def create_character(self, name: str, wake_word: str, personality: str,
+                         sprite_src: Optional[Path] = None,
+                         voice_src: Optional[Path] = None):
+        """Create a new character, switch to it, and refresh the menu."""
+        character = self.characters.create(
+            name, wake_word, personality, sprite_src, voice_src
+        )
+        self.switch_character(character.id)
+        self.tray.refresh_characters()
+        self.bus.status_message.emit(f"Created {character.display_name}.")
+        return character
+
+    def delete_character(self, char_id: str) -> bool:
+        """Delete a character; fall back to the default if it was active."""
+        was_active = self.characters.active.id == char_id
+        if not self.characters.delete(char_id):
+            return False
+        if was_active:
+            self.switch_character(self.characters.active.id)
+        self.tray.refresh_characters()
+        self.bus.status_message.emit("Character deleted.")
+        return True
 
     # ------------------------------------------------------------ voice steps
     def _on_wake(self, name: str) -> None:

@@ -53,19 +53,14 @@ class TrayController:
         self.menu.addAction(self._visualizer)
 
         self.menu.addSeparator()
-        char_menu = self.menu.addMenu("Character")
+        self._char_menu = self.menu.addMenu("Character")
         self._char_group = QActionGroup(self.menu)
         self._char_group.setExclusive(True)
-        active_id = controller.characters.active.id
-        for character in controller.characters.list():
-            action = QAction(character.display_name, self.menu)
-            action.setCheckable(True)
-            action.setChecked(character.id == active_id)
-            action.triggered.connect(
-                lambda _checked, cid=character.id: controller.switch_character(cid)
-            )
-            self._char_group.addAction(action)
-            char_menu.addAction(action)
+        self.refresh_characters()
+
+        create_action = QAction("Create Character…", self.menu)
+        create_action.triggered.connect(controller.open_create_character)
+        self.menu.addAction(create_action)
 
         self.menu.addSeparator()
         settings_action = QAction("Settings…", self.menu)
@@ -84,6 +79,23 @@ class TrayController:
         self.bus.transcript_ready.connect(lambda t: self.set_status(f"Heard: {t}"))
         self.bus.intent_executed.connect(self.set_status)
         self.bus.error.connect(lambda e: self.set_status(f"⚠ {e}"))
+
+    def refresh_characters(self) -> None:
+        """(Re)build the character picker — call after one is added or removed."""
+        self._char_menu.clear()
+        for action in list(self._char_group.actions()):
+            self._char_group.removeAction(action)
+        active_id = self.controller.characters.active.id
+        for character in self.controller.characters.list():
+            action = QAction(character.display_name, self._char_menu)
+            action.setCheckable(True)
+            action.setChecked(character.id == active_id)
+            action.triggered.connect(
+                lambda _checked, cid=character.id:
+                    self.controller.switch_character(cid)
+            )
+            self._char_group.addAction(action)
+            self._char_menu.addAction(action)
 
     def set_status(self, text: str) -> None:
         text = text.strip()
