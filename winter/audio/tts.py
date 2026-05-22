@@ -94,9 +94,11 @@ class ChatterboxEngine(TTSEngine):
         import torch
         from chatterbox.tts import ChatterboxTTS
 
-        if torch.backends.mps.is_available():
-            self.device = "mps"
-        elif torch.cuda.is_available():
+        # Run on CPU rather than Apple's MPS GPU backend: MPS can deadlock
+        # mid-generation (a known torch/MPS bug), silently freezing the voice
+        # thread. CPU is slower but never stalls. CUDA (NVIDIA) has no such
+        # bug, so it is still used when available.
+        if torch.cuda.is_available():
             self.device = "cuda"
         else:
             self.device = "cpu"
