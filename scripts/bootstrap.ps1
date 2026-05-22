@@ -50,7 +50,18 @@ uv pip install -e .
 Write-Host "`n==> Downloading the AI model (~2 GB)..." -ForegroundColor Cyan
 ollama pull llama3.2:3b
 
+# put a "Winter" shortcut on the Desktop — one double-click to launch
+try {
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut("$HOME\Desktop\Winter.lnk")
+    $shortcut.TargetPath = "$InstallDir\winter.vbs"
+    $shortcut.WorkingDirectory = $InstallDir
+    $shortcut.Description = "Winter - AI desktop assistant"
+    $shortcut.Save()
+} catch { }
+
 Write-Host "`n==> Winter is installed at $InstallDir" -ForegroundColor Green
-Write-Host "Double-click  winter.vbs  in that folder to start it."
+Write-Host "Start it from the 'Winter' shortcut on your Desktop"
+Write-Host "(or double-click winter.vbs in the folder)."
 Write-Host "To enable voice cloning later:  .venv\Scripts\python scripts\setup_voice.py"
 explorer $InstallDir

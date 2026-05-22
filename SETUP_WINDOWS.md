@@ -69,15 +69,15 @@ Restart Winter when it finishes.
 
 ## Launching it the easy way
 
-Two launchers sit in the project folder:
-
-- **`winter.vbs`** — double-click for a clean, **no-window** start (the
-  assistant just appears in the system tray). Output goes to `winter.log`, so
-  if Winter doesn't appear, open that file to see the error. Right-click
-  `winter.vbs` → *Create shortcut* and drag it to your Desktop or pin it for
-  one-click access.
-- **`winter.bat`** — double-click to run with a **visible console** that shows
-  live output — handy for troubleshooting.
+- **`winter.vbs`** — the launcher. Double-click it for a clean, **no-window**
+  start (the assistant appears in the system tray). Output goes to
+  `winter.log`, so if Winter doesn't appear, open that file to see the error.
+  Right-click `winter.vbs` → *Create shortcut* and drag the shortcut to your
+  Desktop for one-click access. *(The bootstrap installer makes this Desktop
+  shortcut for you.)*
+- **`winter-troubleshoot.bat`** — runs Winter in a **visible console** showing
+  live output. Only for diagnosing a problem — and **closing that console
+  window stops Winter**, so don't use it for everyday launching.
 
 ## Notes
 
