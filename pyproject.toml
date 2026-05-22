@@ -46,6 +46,10 @@ dependencies = [
 # so its heavy version pins never collide with the main app's. Without it,
 # Winter falls back to the fast Piper voice for every character.
 
+[project.optional-dependencies]
+# development extras — the test runner. Install with:  uv pip install -e ".[dev]"
+dev = ["pytest"]
+
 [project.scripts]
 winter = "winter.main:main"
 

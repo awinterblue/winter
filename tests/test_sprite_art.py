@@ -39,14 +39,23 @@ def test_one_idle_image_covers_every_state(tmp_path):
 
 
 def test_sprite_editable_flag(tmp_path):
-    char, _ = _character(tmp_path)
-    assert char.sprite_editable is True          # default — editable
+    import yaml
 
     from winter.config.character import CharacterManager
-    manager = CharacterManager()
-    # Winter is user-customisable; Hu Tao is a fixed character
-    assert manager.get("default").sprite_editable is True
-    assert manager.get("hutao").sprite_editable is False
+
+    # the field defaults to editable
+    char, _ = _character(tmp_path)
+    assert char.sprite_editable is True
+
+    # a character.yaml can pin it off, and CharacterManager honours that
+    fixed = tmp_path / "characters" / "fixed"
+    fixed.mkdir(parents=True)
+    (fixed / "character.yaml").write_text(
+        yaml.safe_dump({"display_name": "Fixed", "sprite_editable": False}),
+        encoding="utf-8",
+    )
+    manager = CharacterManager(characters_dir=tmp_path / "characters")
+    assert manager.get("fixed").sprite_editable is False
 
 
 # --- custom override: upload installs custom.png; reset removes only that ---
