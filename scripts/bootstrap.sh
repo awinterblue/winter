@@ -60,11 +60,15 @@ uv venv --python 3.12 .venv
 uv pip install -e .
 bash scripts/make_app.sh || true   # build Winter.app for one-click launching
 
+# --- voice cloning ---------------------------------------------------------
+step "Setting up voice cloning (this adds a couple of GB)..."
+.venv/bin/python scripts/setup_voice.py || \
+    echo "Voice cloning setup didn't finish — run scripts/setup_voice.py later."
+
 # --- the AI model ----------------------------------------------------------
 step "Downloading the AI model (~2 GB)..."
 ollama pull llama3.2:3b
 
 step "Winter is installed!"
 echo "Open the \"Winter\" folder in your home directory and double-click Winter.app."
-echo "To enable voice cloning later:  $INSTALL_DIR/.venv/bin/python scripts/setup_voice.py"
 open "$INSTALL_DIR" 2>/dev/null || true

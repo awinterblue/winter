@@ -46,6 +46,15 @@ Set-Location $InstallDir
 uv venv --python 3.12 .venv
 uv pip install -e .
 
+# --- voice cloning ---------------------------------------------------------
+Write-Host "`n==> Setting up voice cloning (this adds a couple of GB)..." -ForegroundColor Cyan
+try {
+    & ".venv\Scripts\python.exe" scripts\setup_voice.py
+} catch {
+    Write-Host "Voice cloning setup didn't finish — run it later with:" -ForegroundColor Yellow
+    Write-Host "  .venv\Scripts\python scripts\setup_voice.py"
+}
+
 # --- the AI model ----------------------------------------------------------
 Write-Host "`n==> Downloading the AI model (~2 GB)..." -ForegroundColor Cyan
 ollama pull llama3.2:3b
@@ -58,5 +67,4 @@ try {
 Write-Host "`n==> Winter is installed at $InstallDir" -ForegroundColor Green
 Write-Host "Start it from the 'Winter' shortcut on your Desktop"
 Write-Host "(or double-click winter.vbs in the folder)."
-Write-Host "To enable voice cloning later:  .venv\Scripts\python scripts\setup_voice.py"
 explorer $InstallDir

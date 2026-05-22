@@ -21,8 +21,8 @@ For contributor/architecture notes see `CLAUDE.md`.
 
 ## Quick install
 
-One command installs everything — uv, Ollama, Winter, and the AI model — into
-a `Winter` folder in your home directory.
+One command installs everything — uv, Ollama, Winter, the AI model, and voice
+cloning — into a `Winter` folder in your home directory.
 
 **macOS / Linux** — paste into Terminal:
 
@@ -52,16 +52,9 @@ cd winter
 ollama pull llama3.2:3b
 ```
 
-`install.sh` creates the Python 3.12 environment and installs everything (a few
-GB, one time). For the full Windows walkthrough see `SETUP_WINDOWS.md`.
-
-Every character uses the fast built-in Piper voice. To enable voice **cloning**
-(so a character can clone a voice from an uploaded clip), set up its isolated
-environment once — no compiler needed, on any platform:
-
-```sh
-.venv/bin/python scripts/setup_voice.py
-```
+`install.sh` creates the Python 3.12 environment and installs everything —
+Winter, voice cloning, all of it — in one pass (several GB, one time). For the
+full Windows walkthrough see `SETUP_WINDOWS.md`.
 
 To update later: `./scripts/update.sh` (Windows: `scripts\update.ps1`).
 

@@ -52,20 +52,22 @@ This installs everything Winter needs to run. Every character uses the fast
 The first launch downloads the speech and hand-tracking models automatically
 (~50 MB). Winter appears in the **system tray** (notification area).
 
-## Voice cloning (optional)
+## Voice cloning
 
-By default Winter speaks every character in the fast built-in Piper voice. To
-let a character clone a voice from an uploaded clip, set up the voice
-environment once:
+So characters can clone a voice from an uploaded clip, set up the voice
+environment:
 
 ```powershell
 .venv\Scripts\python scripts\setup_voice.py
 ```
 
 This creates a separate `.venv-voice` environment and installs the Chatterbox
-voice-cloning engine into it (a few GB — it runs fully isolated, so its
+voice-cloning engine into it (a couple of GB — it runs fully isolated, so its
 dependencies never clash with the main app, and **no C compiler is needed**).
 Restart Winter when it finishes.
+
+*(The one-command installer in `README.md` runs this step for you — this is
+only needed if you followed the manual steps above.)*
 
 ## Launching it the easy way
 
