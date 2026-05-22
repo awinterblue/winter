@@ -47,6 +47,10 @@ def main() -> int:
     print("Pre-downloading the voice model …")
     subprocess.run(
         [str(venv_python), "-c",
+         # fall back to Perth's no-op watermarker if its neural one did not
+         # import (it can fail on Windows) — mirrors _chatterbox_worker.py
+         "import perth; perth.PerthImplicitWatermarker = ("
+         "perth.PerthImplicitWatermarker or perth.DummyWatermarker); "
          "from chatterbox.tts import ChatterboxTTS; "
          "ChatterboxTTS.from_pretrained('cpu')"],
         check=True,

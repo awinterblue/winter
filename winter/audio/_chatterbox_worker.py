@@ -51,6 +51,16 @@ def main() -> None:
     os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 
     import torch
+
+    # Perth's neural watermarker fails to import on some platforms (notably
+    # Windows), leaving perth.PerthImplicitWatermarker as None — which makes
+    # Chatterbox's loader crash on `PerthImplicitWatermarker()`. Winter has no
+    # need for the inaudible watermark, so fall back to Perth's own no-op
+    # DummyWatermarker whenever the real one is unavailable.
+    import perth
+    if getattr(perth, "PerthImplicitWatermarker", None) is None:
+        perth.PerthImplicitWatermarker = perth.DummyWatermarker
+
     from chatterbox.tts import ChatterboxTTS
 
     # Prefer the GPU — it keeps generation fast and off the CPU. This worker is
