@@ -19,10 +19,31 @@ All five build phases are complete: voice commands, personality + voice +
 web Q&A, the on-screen sprite, camera gestures, and polish + packaging.
 For contributor/architecture notes see `CLAUDE.md`.
 
-## Install
+## Quick install
 
-First install the two prerequisites — **[uv](https://docs.astral.sh/uv/)**
-(`brew install uv`) and **[Ollama](https://ollama.com)**. Then:
+One command installs everything — uv, Ollama, Winter, and the AI model — into
+a `Winter` folder in your home directory.
+
+**macOS / Linux** — paste into Terminal:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/awinterblue/winter/main/scripts/bootstrap.sh | bash
+```
+
+**Windows** — paste into PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/awinterblue/winter/main/scripts/bootstrap.ps1 | iex
+```
+
+On Windows, if a prerequisite is missing the command installs it and asks you to
+run it once more — that second run finishes the job.
+
+## Install step by step
+
+Prefer to do it by hand? First install the two prerequisites —
+**[uv](https://docs.astral.sh/uv/)** (`brew install uv`) and
+**[Ollama](https://ollama.com)**. Then:
 
 ```sh
 git clone https://github.com/awinterblue/winter.git
