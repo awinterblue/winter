@@ -50,14 +50,9 @@ uv pip install -e .
 Write-Host "`n==> Downloading the AI model (~2 GB)..." -ForegroundColor Cyan
 ollama pull llama3.2:3b
 
-# put a "Winter" shortcut on the Desktop — one double-click to launch
+# put a "Winter" shortcut on the Desktop (resolves OneDrive-redirected Desktops)
 try {
-    $shell = New-Object -ComObject WScript.Shell
-    $shortcut = $shell.CreateShortcut("$HOME\Desktop\Winter.lnk")
-    $shortcut.TargetPath = "$InstallDir\winter.vbs"
-    $shortcut.WorkingDirectory = $InstallDir
-    $shortcut.Description = "Winter - AI desktop assistant"
-    $shortcut.Save()
+    powershell -NoProfile -ExecutionPolicy Bypass -File "$InstallDir\scripts\make-shortcut.ps1"
 } catch { }
 
 Write-Host "`n==> Winter is installed at $InstallDir" -ForegroundColor Green

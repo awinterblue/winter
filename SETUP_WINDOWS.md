@@ -70,14 +70,15 @@ Restart Winter when it finishes.
 ## Launching it the easy way
 
 - **`winter.vbs`** — the launcher. Double-click it for a clean, **no-window**
-  start (the assistant appears in the system tray). Output goes to
-  `winter.log`, so if Winter doesn't appear, open that file to see the error.
-  Right-click `winter.vbs` → *Create shortcut* and drag the shortcut to your
-  Desktop for one-click access. *(The bootstrap installer makes this Desktop
-  shortcut for you.)*
+  start; Winter appears in the system tray. The bootstrap installer also puts
+  a **Winter** shortcut on your Desktop — to create or recreate it by hand
+  (e.g. if OneDrive moved your Desktop), run:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File scripts\make-shortcut.ps1
+  ```
 - **`winter-troubleshoot.bat`** — runs Winter in a **visible console** showing
-  live output. Only for diagnosing a problem — and **closing that console
-  window stops Winter**, so don't use it for everyday launching.
+  live output. Use it if Winter doesn't appear, to see the error — but
+  **closing that console window stops Winter**, so it's only for diagnosing.
 
 ## Notes
 
