@@ -1,20 +1,20 @@
-"""Winter's on-screen character — an animated sprite.
+"""Winter's on-screen visualizer — a glowing, audio-reactive orb.
 
-Evolved from the audio visualizer: a friendly round creature that floats on
-screen and reacts to what Winter is doing. It blinks, glances around, bobs
-gently, hops when it starts listening, and its mouth moves while it speaks.
+A soft orb that floats on screen and reacts to what Winter is doing: it tints
+by state, bobs gently, hops when it starts listening, and pulses with rings
+and ripples while it speaks. A character can override it with its own sprite
+art (see set_character) — this is the built-in look.
 
-Transparent, always-on-top, draggable. Kept behind set_level/set_state so the
-rest of the app neither knows nor cares that the orb grew a face.
+Transparent, always-on-top, draggable. Driven entirely through set_level and
+set_state.
 """
 from __future__ import annotations
 
 import math
-import random
 import time
 from typing import Callable, Optional
 
-from PyQt6.QtCore import QPointF, QRectF, Qt, QTimer
+from PyQt6.QtCore import QPointF, Qt, QTimer
 from PyQt6.QtGui import (QColor, QGuiApplication, QPainter, QPen, QPixmap,
                          QRadialGradient)
 from PyQt6.QtWidgets import QWidget
@@ -26,8 +26,6 @@ _STATE_COLORS = {
     "thinking": QColor(255, 200, 90),   # amber
     "speaking": QColor(200, 140, 240),  # purple
 }
-_EYE_COLOR = QColor(40, 45, 70)
-_CHEEK_COLOR = QColor(255, 150, 170)
 
 
 def ease(current: float, target: float, factor: float = 0.25) -> float:
@@ -65,14 +63,6 @@ class VisualizerWidget(QWidget):
 
         now = time.monotonic()
         self._t0 = now
-        # blink
-        self._blink = 0.0           # 0 open .. 1 shut
-        self._blink_start = 0.0
-        self._next_blink = now + random.uniform(2.0, 4.0)
-        # glance
-        self._look = [0.0, 0.0]
-        self._look_target = [0.0, 0.0]
-        self._next_look = now + random.uniform(2.0, 5.0)
         # hop
         self._hop_start = -10.0
         # audio-reactive aura — expanding 'sound wave' ripples while speaking
@@ -156,28 +146,6 @@ class VisualizerWidget(QWidget):
     def _tick(self) -> None:
         now = time.monotonic()
         self._level = ease(self._level, self._target_level, 0.25)
-
-        # blink: a quick triangle 0 -> 1 -> 0 lasting ~0.16 s
-        if self._blink == 0.0 and now >= self._next_blink:
-            self._blink_start = now
-            self._blink = 1e-6
-        if self._blink > 0.0:
-            phase = (now - self._blink_start) / 0.16
-            if phase >= 1.0:
-                self._blink = 0.0
-                self._next_blink = now + random.uniform(2.0, 5.0)
-            else:
-                self._blink = 1.0 - abs(2.0 * phase - 1.0)
-
-        # glance: pick a new target now and then, ease toward it
-        if now >= self._next_look:
-            if self._look_target == [0.0, 0.0]:
-                self._look_target = [random.uniform(-1, 1), random.uniform(-0.6, 0.6)]
-            else:
-                self._look_target = [0.0, 0.0]
-            self._next_look = now + random.uniform(1.4, 3.5)
-        self._look[0] = ease(self._look[0], self._look_target[0], 0.12)
-        self._look[1] = ease(self._look[1], self._look_target[1], 0.12)
 
         # aura ripples: spawn while there is voice, expand and fade
         if self._level > 0.30:
@@ -284,7 +252,7 @@ class VisualizerWidget(QWidget):
 
     def _draw_code_sprite(self, painter: QPainter, cx: float, cy: float,
                           size: int, t: float, level: float) -> None:
-        """Winter's built-in code-drawn character (the fallback sprite)."""
+        """Winter's built-in look — a soft glowing orb (the fallback sprite)."""
         color = _STATE_COLORS[self._state]
         squash = 1.0 - math.sin(t * 2.2) * 0.04 + level * 0.05
         body_w = size * 0.56
@@ -296,66 +264,6 @@ class VisualizerWidget(QWidget):
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(body)
         painter.drawEllipse(QPointF(cx, cy), body_w / 2, body_h / 2)
-
-        self._draw_face(painter, cx, cy, body_w, body_h, level)
-
-    def _draw_face(self, painter: QPainter, cx: float, cy: float,
-                   body_w: float, body_h: float, level: float) -> None:
-        eye_dx = body_w * 0.20
-        eye_y = cy - body_h * 0.06
-        eye_w = body_w * 0.17
-        eye_h = body_h * 0.24 * (1.0 - 0.92 * self._blink)
-        look_x = self._look[0] * body_w * 0.05
-        look_y = self._look[1] * body_h * 0.05
-        if self._state == "thinking":      # eyes drift up while it thinks
-            look_y -= body_h * 0.05
-        if self._state == "listening":     # eyes widen, alert
-            eye_h *= 1.15
-
-        for sign in (-1, 1):
-            ex = cx + sign * eye_dx + look_x
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(_EYE_COLOR)
-            painter.drawEllipse(QPointF(ex, eye_y + look_y), eye_w / 2, eye_h / 2)
-            if self._blink < 0.5:          # a shine dot, hidden mid-blink
-                painter.setBrush(QColor(255, 255, 255, 230))
-                shine = eye_w * 0.20
-                painter.drawEllipse(
-                    QPointF(ex - eye_w * 0.16, eye_y + look_y - eye_h * 0.20),
-                    shine, shine,
-                )
-
-        # blush cheeks — friendlier when idle or speaking
-        if self._state in ("idle", "speaking"):
-            painter.setBrush(QColor(_CHEEK_COLOR.red(), _CHEEK_COLOR.green(),
-                                    _CHEEK_COLOR.blue(), 120))
-            for sign in (-1, 1):
-                painter.drawEllipse(
-                    QPointF(cx + sign * body_w * 0.30, cy + body_h * 0.12),
-                    body_w * 0.085, body_h * 0.055,
-                )
-
-        # mouth
-        painter.setPen(Qt.PenStyle.NoPen)
-        mouth_y = cy + body_h * 0.20
-        if self._state == "speaking":
-            open_h = body_h * (0.04 + 0.22 * level)
-            painter.setBrush(QColor(60, 35, 60))
-            painter.drawEllipse(QPointF(cx, mouth_y),
-                                body_w * 0.11, max(1.0, open_h))
-        else:
-            painter.setPen(_EYE_COLOR)
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            pen = painter.pen()
-            pen.setWidthF(max(1.6, body_w * 0.035))
-            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            painter.setPen(pen)
-            mw = body_w * 0.26
-            rect = QRectF(cx - mw / 2, mouth_y - body_h * 0.08, mw, body_h * 0.16)
-            if self._state == "thinking":
-                painter.drawArc(rect, 0, 180 * 16)        # small neutral curve
-            else:
-                painter.drawArc(rect, 200 * 16, 140 * 16)  # smile
 
     # -------------------------------------------------------------- drag-to-move
     def mousePressEvent(self, event) -> None:  # noqa: N802
