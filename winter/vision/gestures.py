@@ -122,6 +122,16 @@ class GestureEngine:
             self._reset()
             return result
 
+        # pinch fires whenever the index is extended — the natural pinch motion
+        # often briefly extends the middle finger too, which would break the
+        # strict 'pointing' pose and lose the click. Decoupling the click from
+        # the strict pose keeps it reliable across that flicker.
+        if _finger_extended(landmarks, INDEX_TIP, INDEX_PIP):
+            self._update_pinch(landmarks, result)
+        else:
+            self._pinched = False
+            self._pinch_frames = 0
+
         if is_pointing(landmarks):
             # cursor mode — never flick/scroll, so cursor moves stay cursor moves
             result.pose = "pointing"
@@ -129,13 +139,10 @@ class GestureEngine:
             self._scroll_center = None
             tip = landmarks[INDEX_TIP]
             result.cursor = (float(tip[0]), float(tip[1]))
-            self._update_pinch(landmarks, result)
         else:
             # any non-pointing hand can swipe sideways; only a flat open palm
             # held high/low scrolls — so other hand shapes never scroll
             result.pose = "flick"
-            self._pinched = False
-            self._pinch_frames = 0
             self._update_swipe(landmarks, now, result)
             if is_flat_palm(landmarks):
                 self._update_scroll(landmarks, now, result)
