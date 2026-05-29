@@ -77,10 +77,12 @@ class VoiceoverDialog(QDialog):
         self._voice_status.setStyleSheet("color: #888;")
         layout.addWidget(self._voice_status)
 
-        # output picker
+        # output picker — default to the next free name so two renders in a
+        # row don't quietly overwrite each other
+        from winter.audio.voiceover import next_free_path
         out_row = QHBoxLayout()
         out_row.addWidget(QLabel("Save to"))
-        self._output = QLineEdit(str(_OUTPUT_DIR / "voiceover.wav"))
+        self._output = QLineEdit(str(next_free_path(_OUTPUT_DIR)))
         out_row.addWidget(self._output, 1)
         browse = QPushButton("Browse…")
         browse.clicked.connect(self._pick_output)
@@ -229,6 +231,11 @@ class VoiceoverDialog(QDialog):
     def _on_finished(self, path: str) -> None:
         self._set_busy(False)
         self._status.setText(f"Saved: {path}")
+        # bump the suggested name so the next Generate won't overwrite this one,
+        # while keeping whatever base the user chose (voiceover-2 → voiceover-3,
+        # narration → narration-2, etc.)
+        from winter.audio.voiceover import next_free_after
+        self._output.setText(str(next_free_after(Path(path))))
         # reveal the file in the OS file manager so it's easy to find
         try:
             from winter.system.osinfo import IS_MACOS, IS_WINDOWS

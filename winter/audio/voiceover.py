@@ -8,6 +8,7 @@ the recording you're trying to make.
 from __future__ import annotations
 
 import queue
+import re
 import wave
 from pathlib import Path
 from typing import Optional
@@ -21,6 +22,37 @@ from PyQt6.QtCore import QThread, pyqtSignal
 _VOICEOVER_MIN_CHARS = 250
 # Tiny pause inserted between chunks so they read as natural sentence breaks.
 _GAP_SECONDS = 0.30
+
+
+def next_free_path(directory: Path, base: str = "voiceover",
+                   suffix: str = ".wav") -> Path:
+    """Pick the next unused filename in `directory`.
+
+    Returns `<base><suffix>` if that's free; otherwise `<base>-2<suffix>`,
+    `<base>-3<suffix>`, and so on — so consecutive voiceover renders never
+    overwrite each other.
+    """
+    if not directory.exists():
+        return directory / f"{base}{suffix}"
+    first = directory / f"{base}{suffix}"
+    if not first.exists():
+        return first
+    i = 2
+    while (directory / f"{base}-{i}{suffix}").exists():
+        i += 1
+    return directory / f"{base}-{i}{suffix}"
+
+
+def next_free_after(saved_path: Path) -> Path:
+    """Next-free path in the same folder, reusing the saved file's name base.
+
+    Strips a trailing `-N` from the saved file's stem so saving `voiceover-2.wav`
+    suggests `voiceover-3.wav`, while saving a custom-named `narration.wav`
+    suggests `narration-2.wav`. Lets the user keep their naming convention
+    across consecutive renders without typing a new name each time.
+    """
+    stem = re.sub(r"-\d+$", "", saved_path.stem) or saved_path.stem
+    return next_free_path(saved_path.parent, stem, saved_path.suffix or ".wav")
 
 
 def _silence(seconds: float, sample_rate: int) -> np.ndarray:
