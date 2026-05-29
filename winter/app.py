@@ -59,6 +59,9 @@ class AppController(QObject):
         # TTS lives on its own thread — a torch/MPS model must stay on one thread
         self.tts_thread = TTSThread(self.bus)
         self._tts_ready = False
+        # Voiceover renderer — its own Chatterbox engine so long renders never
+        # block the live assistant voice; built lazily on first use.
+        self._voiceover_renderer = None
 
         # ui
         self.tray = TrayController(self)
@@ -133,6 +136,37 @@ class AppController(QObject):
     def open_create_character(self) -> None:
         """Open the modal 'Create a Character' dialog."""
         CreateCharacterDialog(self).exec()
+
+    # ----------------------------------------------------------- voiceovers
+    def ensure_voiceover_renderer(self):
+        """Lazy-build (and start) the long-lived voiceover renderer thread.
+
+        Built only on first use so a Winter session that never opens the
+        voiceover dialog never pays the cost of a second Chatterbox engine.
+        Its result also flashes in the tray, so a render finishing after the
+        dialog was closed is still visible to the user.
+        """
+        if self._voiceover_renderer is None:
+            from winter.audio.voiceover import VoiceoverRenderer
+            renderer = VoiceoverRenderer(self)
+            renderer.finished_ok.connect(
+                lambda p: self.bus.status_message.emit(
+                    f"Voiceover saved: {Path(p).name}"
+                )
+            )
+            renderer.failed.connect(
+                lambda e: self.bus.status_message.emit(
+                    f"Voiceover failed — {e}"
+                )
+            )
+            renderer.start()
+            self._voiceover_renderer = renderer
+        return self._voiceover_renderer
+
+    def open_voiceover(self) -> None:
+        """Open the modal 'Generate Voiceover' dialog."""
+        from winter.ui.voiceover_dialog import VoiceoverDialog
+        VoiceoverDialog(self).exec()
 
     # ---------------------------------------------------------------- updates
     def check_for_updates(self, announce_uptodate: bool = False) -> None:
@@ -454,6 +488,8 @@ class AppController(QObject):
         if self.camera_thread:
             self.camera_thread.stop()
         self.tts_thread.stop()
+        if self._voiceover_renderer is not None:
+            self._voiceover_renderer.stop()
         self.settings.voice_enabled = self.state.voice_enabled
         self.settings.camera_enabled = self.state.camera_enabled
         self.settings.active_character = self.characters.active.id

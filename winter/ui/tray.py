@@ -62,6 +62,10 @@ class TrayController:
         create_action.triggered.connect(controller.open_create_character)
         self.menu.addAction(create_action)
 
+        voiceover_action = QAction("Generate Voiceover…", self.menu)
+        voiceover_action.triggered.connect(controller.open_voiceover)
+        self.menu.addAction(voiceover_action)
+
         self.menu.addSeparator()
         settings_action = QAction("Settings…", self.menu)
         settings_action.triggered.connect(controller.open_settings)
